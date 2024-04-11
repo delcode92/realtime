@@ -87,6 +87,7 @@ class _SearchPageState extends State<SearchPage> {
                                               value['profilePicture'] ?? ''),
                                         ),
                                         title: Text(value['fullName']),
+                                        // title: Text(value['hp']),
                                         subtitle: Text(value['email']),
                                       ),
                                     ),

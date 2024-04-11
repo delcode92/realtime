@@ -20,7 +20,7 @@ class CompleteProfile extends StatefulWidget {
 class _CompleteProfileState extends State<CompleteProfile> {
   File? imageFile;
   TextEditingController fullNameController = TextEditingController();
-  TextEditingController instansiController = TextEditingController();
+  TextEditingController NomorController = TextEditingController();
 
   void selectImage(ImageSource source) async {
     XFile? pickedFile = await ImagePicker().pickImage(source: source);
@@ -31,7 +31,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
   }
 
   void cropImage(XFile file) async {
-    final imageCropper = ImageCropper(); // Create an instance of ImageCropper
+    final imageCropper = ImageCropper();
 
     CroppedFile? croppedImage = await imageCropper.cropImage(
       sourcePath: file.path,
@@ -42,7 +42,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
     );
 
     if (croppedImage != null) {
-      // Convert CroppedFile to File
       File croppedFile = File(croppedImage.path);
 
       setState(() {
@@ -85,7 +84,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
   void checkValues() {
     String fullname = fullNameController.text.trim();
-    String intansi = instansiController.text.trim();
+    String intansi = NomorController.text.trim();
 
     if (fullname.isEmpty || intansi.isEmpty || imageFile == null) {
       print("Please fill all the fields");
@@ -102,24 +101,20 @@ class _CompleteProfileState extends State<CompleteProfile> {
     }
 
     String fullname = fullNameController.text.trim();
-    String intansi = instansiController.text.trim();
+    String intansi = NomorController.text.trim();
 
-    // Generate unique filename
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
 
-    // Upload image to Firebase Storage
     Reference ref =
         FirebaseStorage.instance.ref("profilepictures").child(fileName);
     UploadTask uploadTask = ref.putFile(imageFile!);
     TaskSnapshot snapshot = await uploadTask;
     String imageUrl = await snapshot.ref.getDownloadURL();
 
-    // Get current user UID
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String uid = user.uid;
 
-      // Insert user data into Realtime Database
       DatabaseReference usersRef =
           FirebaseDatabase.instance.reference().child('users');
       usersRef.child(uid).update({
@@ -137,7 +132,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
         }),
       );
     } else {
-      // Handle error if user not found
       print("Error: User not found");
     }
   }
@@ -188,11 +182,11 @@ class _CompleteProfileState extends State<CompleteProfile> {
               ),
               SizedBox(height: 20),
               Text(
-                "Intansi",
+                "Nomor Hp",
                 style: TextStyle(fontSize: 18),
               ),
               TextField(
-                controller: instansiController,
+                controller: NomorController,
                 decoration: InputDecoration(
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 13, horizontal: 10),
@@ -218,7 +212,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
             ),
           ),
           child: Text(
-            "Submit",
+            "Simpan",
             style: TextStyle(fontSize: 20, color: Colors.white),
           ),
         ),

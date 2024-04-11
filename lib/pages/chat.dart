@@ -34,9 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _initializeDownloader();
   }
 
-  Future<void> _initializeDownloader() async {
-    await FlutterDownloader.initialize();
-  }
+  Future<void> _initializeDownloader() async {}
 
   TextEditingController messageController = TextEditingController();
 
