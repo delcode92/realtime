@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:realtime/pages/profil.dart';
+import 'package:realtime/pages/fillprofil.dart';
 
 class signup extends StatefulWidget {
   const signup({super.key});

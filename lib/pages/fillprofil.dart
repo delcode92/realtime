@@ -84,9 +84,9 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
   void checkValues() {
     String fullname = fullNameController.text.trim();
-    String intansi = NomorController.text.trim();
+    String nomor = NomorController.text.trim();
 
-    if (fullname.isEmpty || intansi.isEmpty || imageFile == null) {
+    if (fullname.isEmpty || nomor.isEmpty || imageFile == null) {
       print("Please fill all the fields");
     } else {
       log("Uploading data..");
@@ -101,7 +101,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     }
 
     String fullname = fullNameController.text.trim();
-    String intansi = NomorController.text.trim();
+    String nomor = NomorController.text.trim();
 
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
 
@@ -119,7 +119,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
           FirebaseDatabase.instance.reference().child('users');
       usersRef.child(uid).update({
         'fullName': fullname,
-        'intansi': intansi,
+        'nomor': nomor,
         'profilePicture': imageUrl,
       });
 
@@ -187,6 +187,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
               ),
               TextField(
                 controller: NomorController,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 13, horizontal: 10),
