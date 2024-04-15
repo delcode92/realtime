@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:realtime/pages/login.dart';
 import 'package:realtime/pages/search.dart';
+import 'package:realtime/pages/uprofil.dart';
 
 class Home_Page extends StatefulWidget {
   const Home_Page({super.key});
@@ -156,6 +157,7 @@ class _Home_PageState extends State<Home_Page> {
             onSelected: (value) {
               if (value == 1) {
                 // Handle Profile option
+                uprofil_page();
               } else if (value == 2) {
                 // Handle Log Out option
                 _signOut();
