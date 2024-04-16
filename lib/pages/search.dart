@@ -14,11 +14,11 @@ class _SearchPageState extends State<SearchPage> {
       FirebaseDatabase.instance.reference().child('users');
   User? currentUser = FirebaseAuth.instance.currentUser;
 
-  Stream<DatabaseEvent> searchUserByFullName(String fullName) {
+  Stream<DatabaseEvent> searchUserBynama(String nama) {
     return _userRef
-        .orderByChild('fullName')
-        .startAt(fullName)
-        .endAt(fullName + "\uf8ff")
+        .orderByChild('nama')
+        .startAt(nama)
+        .endAt(nama + "\uf8ff")
         .onValue;
   }
 
@@ -53,8 +53,7 @@ class _SearchPageState extends State<SearchPage> {
               Expanded(
                 child: searchController.text.isNotEmpty
                     ? StreamBuilder<DatabaseEvent>(
-                        stream:
-                            searchUserByFullName(searchController.text.trim()),
+                        stream: searchUserBynama(searchController.text.trim()),
                         builder: (context, snapshot) {
                           if (snapshot.hasData &&
                               snapshot.data!.snapshot.value != null) {
@@ -74,7 +73,7 @@ class _SearchPageState extends State<SearchPage> {
                                               roomId: generateRoomId(
                                                   currentUser!.uid,
                                                   value['uid']),
-                                              fullName: value['fullName'],
+                                              nama: value['nama'],
                                               profilePicture:
                                                   value['profilePicture'],
                                             );
@@ -86,7 +85,7 @@ class _SearchPageState extends State<SearchPage> {
                                           backgroundImage: NetworkImage(
                                               value['profilePicture'] ?? ''),
                                         ),
-                                        title: Text(value['fullName']),
+                                        title: Text(value['nama']),
                                         // title: Text(value['hp']),
                                         subtitle: Text(value['email']),
                                       ),

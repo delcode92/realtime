@@ -19,8 +19,8 @@ class CompleteProfile extends StatefulWidget {
 
 class _CompleteProfileState extends State<CompleteProfile> {
   File? imageFile;
-  TextEditingController fullNameController = TextEditingController();
-  TextEditingController NomorController = TextEditingController();
+  TextEditingController namaController = TextEditingController();
+  TextEditingController teleponController = TextEditingController();
 
   void selectImage(ImageSource source) async {
     XFile? pickedFile = await ImagePicker().pickImage(source: source);
@@ -67,14 +67,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 leading: Icon(Icons.photo_album),
                 title: Text("Select from Gallery"),
               ),
-              ListTile(
-                onTap: () {
-                  Navigator.pop(context);
-                  selectImage(ImageSource.camera);
-                },
-                leading: Icon(Icons.camera_alt),
-                title: Text("Take a photo"),
-              ),
             ],
           ),
         );
@@ -83,10 +75,10 @@ class _CompleteProfileState extends State<CompleteProfile> {
   }
 
   void checkValues() {
-    String fullname = fullNameController.text.trim();
-    String nomor = NomorController.text.trim();
+    String nama = namaController.text.trim();
+    String telepon = teleponController.text.trim();
 
-    if (fullname.isEmpty || nomor.isEmpty || imageFile == null) {
+    if (nama.isEmpty || telepon.isEmpty || imageFile == null) {
       print("Please fill all the fields");
     } else {
       log("Uploading data..");
@@ -100,8 +92,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
       return;
     }
 
-    String fullname = fullNameController.text.trim();
-    String nomor = NomorController.text.trim();
+    String nama = namaController.text.trim();
+    String telepon = teleponController.text.trim();
 
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
 
@@ -118,8 +110,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
       DatabaseReference usersRef =
           FirebaseDatabase.instance.reference().child('users');
       usersRef.child(uid).update({
-        'fullName': fullname,
-        'nomor': nomor,
+        'nama': nama,
+        'telepon': telepon,
         'profilePicture': imageUrl,
       });
 
@@ -142,7 +134,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       appBar: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: Text("Complete Profile"),
+        title: Text("Isi Profile"),
       ),
       body: SafeArea(
         child: Container(
@@ -157,14 +149,20 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 padding: EdgeInsets.all(0),
                 child: CircleAvatar(
                   radius: 60,
+                  backgroundColor: Colors.grey,
                   backgroundImage:
                       (imageFile != null) ? FileImage(imageFile!) : null,
-                  child: (imageFile == null)
-                      ? Icon(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (imageFile == null)
+                        Icon(
                           Icons.person,
-                          size: 60,
-                        )
-                      : null,
+                          size: 100,
+                          color: Colors.white,
+                        ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(height: 15),
@@ -173,7 +171,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 style: TextStyle(fontSize: 18),
               ),
               TextField(
-                controller: fullNameController,
+                controller: namaController,
                 decoration: InputDecoration(
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 13, horizontal: 10),
@@ -182,11 +180,11 @@ class _CompleteProfileState extends State<CompleteProfile> {
               ),
               SizedBox(height: 20),
               Text(
-                "Nomor Hp",
+                "Telepon",
                 style: TextStyle(fontSize: 18),
               ),
               TextField(
-                controller: NomorController,
+                controller: teleponController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   contentPadding:

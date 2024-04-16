@@ -60,12 +60,12 @@ class _Home_PageState extends State<Home_Page> {
       if (event.snapshot.value != null) {
         Map<dynamic, dynamic>? userData =
             event.snapshot.value as Map<dynamic, dynamic>?;
-        if (userData != null && userData.containsKey('fullName')) {
-          String fullName = userData['fullName'] as String;
+        if (userData != null && userData.containsKey('nama')) {
+          String nama = userData['nama'] as String;
           String profilePicture = userData['profilePicture'] as String;
-          if (!_otherUserNames.contains(fullName)) {
+          if (!_otherUserNames.contains(nama)) {
             setState(() {
-              _otherUserNames.add(userData['fullName'] as String);
+              _otherUserNames.add(userData['name'] as String);
               _otherUserProfilePictures.add(profilePicture);
             });
           }
@@ -157,7 +157,8 @@ class _Home_PageState extends State<Home_Page> {
             onSelected: (value) {
               if (value == 1) {
                 // Handle Profile option
-                uprofil_page();
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => uprofil_page()));
               } else if (value == 2) {
                 // Handle Log Out option
                 _signOut();

@@ -13,12 +13,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 class ChatScreen extends StatefulWidget {
   final String roomId;
-  final String fullName;
+  final String nama;
   final String? profilePicture;
 
   ChatScreen({
     required this.roomId,
-    required this.fullName,
+    required this.nama,
     this.profilePicture,
   });
 
@@ -83,7 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 8,
             ),
             Text(
-              widget.fullName,
+              widget.nama,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 22,

@@ -1,228 +1,371 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:realtime/pages/home.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 
 class uprofil_page extends StatefulWidget {
-  const uprofil_page({super.key});
-
   @override
-  State<uprofil_page> createState() => _uprofil_pageState();
+  _uprofil_pageState createState() => _uprofil_pageState();
 }
 
 class _uprofil_pageState extends State<uprofil_page> {
-  TextEditingController emailcontroller = TextEditingController();
+  late DatabaseReference _userRef;
+  late User? _currentUser;
+  File? _imageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = FirebaseAuth.instance.currentUser;
+    _userRef = FirebaseDatabase.instance
+        .reference()
+        .child('users')
+        .child(_currentUser!.uid);
+  }
+
+  void updateUserData(String field, String newValue) {
+    _userRef.update({
+      field: newValue,
+    });
+  }
+
+  Future<File?> cropImage(File imageFile) async {
+    final imageCropper = ImageCropper();
+
+    CroppedFile? croppedImage = await imageCropper.cropImage(
+      sourcePath: imageFile.path,
+      aspectRatioPresets: [
+        CropAspectRatioPreset.square,
+      ],
+      compressQuality: 20,
+    );
+
+    if (croppedImage != null) {
+      File croppedFile = File(croppedImage.path);
+      return croppedFile;
+    } else {
+      return null;
+    }
+  }
+
+  void selectImage(ImageSource source) async {
+    XFile? pickedFile = await ImagePicker().pickImage(source: source);
+
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
+      File? croppedImageFile = await cropImage(imageFile);
+      if (croppedImageFile != null) {
+        setState(() {
+          _imageFile = croppedImageFile;
+        });
+        uploadImage(croppedImageFile);
+      }
+    }
+  }
+
+  void uploadImage(File imageFile) {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
+    // Replace the path with your desired path in Firebase Storage
+    Reference ref =
+        FirebaseStorage.instance.ref("profilePicture").child(fileName);
+    UploadTask uploadTask = ref.putFile(imageFile);
+    uploadTask.then((res) {
+      res.ref.getDownloadURL().then((url) {
+        updateUserData('profilePicture', url);
+      });
+    });
+  }
+
+  void showPhotoOptions() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Upload Profile Picture"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                onTap: () {
+                  Navigator.pop(context);
+                  selectImage(ImageSource.gallery);
+                },
+                leading: Icon(Icons.photo_album),
+                title: Text("Select from Gallery"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
+        backgroundColor: Colors.blue,
+        leading: IconButton(
+          icon: Image.asset('assets/icons/back.png'),
+          onPressed: () {
+            Navigator.of(context).pop();
           },
-          child: Center(
-            child: Image.asset(
-              'assets/icons/back.png',
-              width: 30,
-              height: 30,
-            ),
-          ),
         ),
         title: Text(
-          'Profil',
+          "Profile",
           style: TextStyle(
               fontSize: 22,
               fontFamily: 'Inter',
               fontWeight: FontWeight.normal,
-              color: Colors.black),
+              color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 60),
-            //membuat gambar profile
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 150,
-                  height: 150,
-                  child: Stack(
+      body: _currentUser != null
+          ? StreamBuilder<DatabaseEvent>(
+              stream: _userRef.onValue,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData ||
+                    snapshot.data!.snapshot.value == null) {
+                  return Center(child: Text('No user data found.'));
+                }
+
+                Map<dynamic, dynamic> userData =
+                    snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+
+                return Padding(
+                  padding: const EdgeInsets.all(25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      if (userData['profilePicture'] != null)
+                        // SizedBox(
+                        //   height: 10,
+                        // ),
+                        Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 80,
+                              backgroundImage:
+                                  NetworkImage(userData['profilePicture']),
+                            ),
+                            Positioned(
+                              bottom: 10,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  showPhotoOptions();
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.blue,
+                                  ),
+                                  child: Icon(Icons.camera_alt,
+                                      color: Colors.white, size: 30),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      SizedBox(height: 20),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                "Nama",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                       Container(
-                        width: 150,
-                        height: 150,
+                        padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: AssetImage("assets/images/profil.png"),
-                                fit: BoxFit.cover)),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: GestureDetector(
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image:
-                                        AssetImage("assets/images/kamera.png"),
-                                    fit: BoxFit.cover)),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-            SizedBox(height: 30),
-
-            //membuat textfield
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "Nama",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(width: 2, color: Colors.black)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            height: 50,
-                            child: TextField(
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.black, width: 2)),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${userData['nama'] ?? 'No nama available'}',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        TextEditingController _controller =
+                                            TextEditingController();
+                                        return AlertDialog(
+                                          title: Text('Update Nama'),
+                                          content: TextField(
+                                            controller: _controller,
+                                            decoration: InputDecoration(
+                                                hintText: 'Isi nama baru'),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                String newnama =
+                                                    _controller.text;
+                                                updateUserData('nama', newnama);
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Update'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Icon(Icons.edit),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        //gambar di samping input text
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image:
-                                        AssetImage("assets/images/pensil.png"),
-                                    fit: BoxFit.cover)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  //membuat textfield
-                  Row(
-                    children: [
-                      Text(
-                        "Nomor Handphone",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.normal),
                       ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(width: 2, color: Colors.black)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            height: 50,
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: "+62...",
-                                border: InputBorder.none,
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                "Telepon",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.black, width: 2),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${userData['telepon'] ?? 'No telepon available'}',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        TextEditingController _controller =
+                                            TextEditingController();
+
+                                        return AlertDialog(
+                                          title: Text('Update telepon'),
+                                          content: TextField(
+                                            keyboardType: TextInputType.number,
+                                            controller: _controller,
+                                            decoration: InputDecoration(
+                                                hintText:
+                                                    'Isi No. telepon baru'),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                String newtelepon =
+                                                    _controller.text;
+                                                updateUserData(
+                                                    'telepon', newtelepon);
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Update'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Icon(Icons.edit),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        //gambar di samping input text
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image:
-                                        AssetImage("assets/images/pensil.png"),
-                                    fit: BoxFit.cover)),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                "Email",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
                           ),
+                        ],
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.black, width: 2),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 355),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return Home_Page();
-                    },
+                        child: Row(
+                          children: [
+                            Text(
+                              '${userData['email'] ?? 'No email available'}',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF3378FF),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                fixedSize: Size(350, 50),
-              ),
-              child: Text(
-                'Lanjut',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.normal),
-              ),
+            )
+          : Center(
+              child: Text('No user signed in.'),
             ),
-            SizedBox(height: 30),
-          ],
-        ),
-      ),
     );
   }
+
+  croppedFile(File imageFile) {}
 }
