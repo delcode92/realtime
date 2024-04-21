@@ -39,15 +39,24 @@ class _Home_PageState extends State<Home_Page> {
 
   void _checkRooms() {
     String currentUserUid = _currentUser.uid;
+
     _database.child('rooms').once().then((DatabaseEvent event) {
       if (event.snapshot.value != null) {
         Map<dynamic, dynamic>? rooms =
             event.snapshot.value as Map<dynamic, dynamic>?;
+
+        // format IduserLain_MyUserId atau MyUserId_IduserLain
+
         rooms?.forEach((key, value) {
+          // misal string = "hello world"
+          // "hello" atau "world" ?
           List<String> users = key.split('_');
+
+          // cek dalam string user apakah mengandung id kita sekarang ?
           if (users.contains(currentUserUid)) {
             String otherUserId =
                 users.firstWhere((userId) => userId != currentUserUid);
+
             _getUserDetails(otherUserId);
           }
         });
@@ -55,16 +64,53 @@ class _Home_PageState extends State<Home_Page> {
     });
   }
 
+/*
+room
+|
+-----> itxJ7TkfU9YRZm1NerLoCmA0XBf2_ogs60gV8BtWshphkjXAQvPZlHQy2
+      |
+      ---> ambil semua key yg berada didalam `itxJ7TkfU9YRZm1NerLoCmA0XBf2_ogs60gV8BtWshphkjXAQvPZlHQy2`, kemudian simpan dalam list/array
+          ["-NvbXWl2t2hDKhJH-WbK", ....., -Nvtmy8UBH2nodxRd62g]
+          ambil index terakhir dari list/array tsb
+          ==> cek apakah ada key filename, klo gk ada berarti text, tapi jika ada key `filename` --> cek lagi extensi filenya, berupa file gambar atau yg lainnya
+          ==> last_message = ["room"]["itxJ7TkfU9YRZm1NerLoCmA0XBf2_ogs60gV8BtWshphkjXAQvPZlHQy2"]["Nvtmy8UBH2nodxRd62g"]["text"]
+*/
+
+
+  // UBAH key name jadi nama
+  // userId --> user id pengguna lain
+
+  /*
+
+  // jalanakan ketika listile di tap ---> kirim 2 argumen userId1, userId2
+
+1.String generateRoomId(String userId1, String userId2) {
+    List<String> participants = [userId1, userId2];
+    participants.sort();
+    String roomId = participants.join('_');
+    return roomId;
+  }
+
+ 2. setelah jalankan generateRoomId() --> manggil ChatScreen()
+
+  */
+
   void _getUserDetails(String userId) {
     _database.child('users').child(userId).once().then((DatabaseEvent event) {
       if (event.snapshot.value != null) {
         Map<dynamic, dynamic>? userData =
             event.snapshot.value as Map<dynamic, dynamic>?;
         if (userData != null && userData.containsKey('nama')) {
+          // GET DATA DARI RELATIME DB
           String nama = userData['nama'] as String;
           String profilePicture = userData['profilePicture'] as String;
+
+          print("cek=> $nama");
+          print("cek=> $profilePicture");
+
           if (!_otherUserNames.contains(nama)) {
             setState(() {
+              // tambahakan list user ke array _otherUserNames
               _otherUserNames.add(userData['name'] as String);
               _otherUserProfilePictures.add(profilePicture);
             });

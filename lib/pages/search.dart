@@ -12,6 +12,8 @@ class _SearchPageState extends State<SearchPage> {
   TextEditingController searchController = TextEditingController();
   final DatabaseReference _userRef =
       FirebaseDatabase.instance.reference().child('users');
+
+  // user ? --> string ???
   User? currentUser = FirebaseAuth.instance.currentUser;
 
   Stream<DatabaseEvent> searchUserBynama(String nama) {
@@ -65,6 +67,8 @@ class _SearchPageState extends State<SearchPage> {
                                 if (value['uid'] != currentUser!.uid) {
                                   usersList.add(
                                     GestureDetector(
+
+                                      // masuk ke laman chat, ketika tap profile user lain
                                       onTap: () {
                                         Navigator.push(
                                           context,

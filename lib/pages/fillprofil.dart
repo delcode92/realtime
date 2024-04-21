@@ -1,3 +1,7 @@
+/*
+setelah signup via gmail , isi profile utk aplikasi
+*/ 
+
 import 'dart:developer';
 import 'dart:io';
 
@@ -50,6 +54,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     }
   }
 
+  // pop up select file after cliked user pic 
   void showPhotoOptions() {
     showDialog(
       context: context,
@@ -95,8 +100,15 @@ class _CompleteProfileState extends State<CompleteProfile> {
     String nama = namaController.text.trim();
     String telepon = teleponController.text.trim();
 
+    // HARUS DIUPDATE
+    // nama file ganti jadi id account
+    // Utk solusi masalah replace/update gambar profile
+    
+    // get user current user id: Tapi cek dulu tipe datanya, apakah bisa digabung dengan string ?
+    // FirebaseAuth.instance.currentUser;
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
 
+  // upload to fire storage
     Reference ref =
         FirebaseStorage.instance.ref("profilepictures").child(fileName);
     UploadTask uploadTask = ref.putFile(imageFile!);

@@ -18,6 +18,7 @@ class _signupState extends State<signup> {
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _cPasswordController = TextEditingController();
 
+  // tambah re-type password
   void checkvalues() {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -39,6 +40,8 @@ class _signupState extends State<signup> {
         email: email,
         password: password,
       );
+
+      print("cek=> credential: $credential");
 
       // If user registration is successful
       if (credential != null) {
@@ -129,6 +132,7 @@ class _signupState extends State<signup> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
+                            // sekalian panggil veirfikasi email
                             checkvalues();
                           },
                           child: Text(
