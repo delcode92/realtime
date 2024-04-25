@@ -74,7 +74,7 @@ class _signupState extends State<signup> {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => CompleteProfile()),
+            MaterialPageRoute(builder: (context) => fillProfile()),
           );
         }
       }

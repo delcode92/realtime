@@ -10,14 +10,14 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:realtime/pages/home.dart';
 
-class CompleteProfile extends StatefulWidget {
-  const CompleteProfile({Key? key});
+class fillProfile extends StatefulWidget {
+  const fillProfile({Key? key});
 
   @override
-  _CompleteProfileState createState() => _CompleteProfileState();
+  _fillProfileState createState() => _fillProfileState();
 }
 
-class _CompleteProfileState extends State<CompleteProfile> {
+class _fillProfileState extends State<fillProfile> {
   File? imageFile;
   TextEditingController namaController = TextEditingController();
   TextEditingController teleponController = TextEditingController();

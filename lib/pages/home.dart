@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:realtime/pages/login.dart';
 import 'package:realtime/pages/search.dart';
-import 'package:realtime/pages/uprofil.dart';
+import 'package:realtime/pages/updateprofil.dart';
 
 class Home_Page extends StatefulWidget {
   const Home_Page({super.key});
