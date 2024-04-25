@@ -17,16 +17,38 @@ class _signupState extends State<signup> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _cPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   void checkvalues() {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
     String cpassword = _cPasswordController.text.trim();
 
-    if (email == "" || password == "" || cpassword == "") {
+    if (email.isEmpty || password.isEmpty || cpassword.isEmpty) {
       print("Please fill all the fields");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Masi ada yang kosong'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } else if (password.length < 6) {
+      print("Password must be at least 6 characters long");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password minimal 6 karakter'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } else if (password != cpassword) {
       print("Passwords do not match");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('passwods tidak sama'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } else {
       signup(email, password);
     }
@@ -40,7 +62,6 @@ class _signupState extends State<signup> {
         password: password,
       );
 
-      // If user registration is successful
       if (credential != null) {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
@@ -51,7 +72,6 @@ class _signupState extends State<signup> {
             'uid': user.uid,
           });
 
-          // Navigate to the home page after successful signup
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => CompleteProfile()),
@@ -63,6 +83,12 @@ class _signupState extends State<signup> {
         print('The password provided is too weak.');
       } else if (e.code == 'email-already-in-use') {
         print('The account already exists for that email.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('The account already exists for that email.'),
+            backgroundColor: Colors.blue,
+          ),
+        );
       }
     } catch (e) {
       print(e);
@@ -101,25 +127,51 @@ class _signupState extends State<signup> {
                     height: 15,
                   ),
                   TextField(
-                    obscureText: true,
                     controller: _passwordController,
                     decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 13, horizontal: 10),
-                        border: OutlineInputBorder(),
-                        labelText: "Password"),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+                      border: OutlineInputBorder(),
+                      labelText: 'Password',
+                      suffixIcon: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                        child: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                      ),
+                    ),
+                    obscureText: _obscureConfirmPassword,
                   ),
                   SizedBox(
                     height: 15,
                   ),
                   TextField(
-                    obscureText: true,
                     controller: _cPasswordController,
                     decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 13, horizontal: 10),
-                        border: OutlineInputBorder(),
-                        labelText: "Confirm Password"),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+                      border: OutlineInputBorder(),
+                      labelText: "Confirm Password",
+                      suffixIcon: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                        child: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                      ),
+                    ),
+                    obscureText: _obscureConfirmPassword,
                   ),
                   SizedBox(
                     height: 15,

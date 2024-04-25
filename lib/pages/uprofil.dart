@@ -68,8 +68,9 @@ class _uprofil_pageState extends State<uprofil_page> {
   }
 
   void uploadImage(File imageFile) {
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
-    // Replace the path with your desired path in Firebase Storage
+    String uid = _currentUser!.uid;
+    String fileName = '$uid.jpg';
+
     Reference ref =
         FirebaseStorage.instance.ref("profilePicture").child(fileName);
     UploadTask uploadTask = ref.putFile(imageFile);

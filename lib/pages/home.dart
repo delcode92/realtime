@@ -21,6 +21,7 @@ class _Home_PageState extends State<Home_Page> {
   List<String> _otherUserProfilePictures = [];
   Map<String, dynamic> _latestMessages = {};
   Map<String, int> _latestTimestamps = {};
+  List<String> _otherUserIds = [];
 
   @override
   void initState() {
@@ -63,10 +64,12 @@ class _Home_PageState extends State<Home_Page> {
         if (userData != null && userData.containsKey('nama')) {
           String nama = userData['nama'] as String;
           String profilePicture = userData['profilePicture'] as String;
+          String uid = userData['uid'] as String;
           if (!_otherUserNames.contains(nama)) {
             setState(() {
-              _otherUserNames.add(userData['name'] as String);
+              _otherUserNames.add(nama);
               _otherUserProfilePictures.add(profilePicture);
+              _otherUserIds.add(uid);
             });
           }
         }
@@ -86,6 +89,26 @@ class _Home_PageState extends State<Home_Page> {
         String otherUserId =
             users.firstWhere((userId) => userId != currentUserUid);
         _getUserDetails(otherUserId);
+
+        // Update latest message and timestamp
+        _database
+            .child('rooms')
+            .child(roomKey)
+            .orderByKey()
+            .limitToLast(1)
+            .once()
+            .then((DatabaseEvent messageEvent) {
+          if (messageEvent.snapshot.value != null) {
+            Map<dynamic, dynamic>? messages =
+                messageEvent.snapshot.value as Map<dynamic, dynamic>?;
+            messages?.forEach((messageKey, messageData) {
+              setState(() {
+                _latestMessages[roomKey] = messageData['text'];
+                _latestTimestamps[roomKey] = messageData['timestamp'];
+              });
+            });
+          }
+        });
       }
     });
   }
@@ -108,6 +131,9 @@ class _Home_PageState extends State<Home_Page> {
   }
 
   String _formatTimestamp(int timestamp) {
+    if (timestamp == 0) {
+      return '';
+    }
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
     String formattedTime = DateFormat('HH:mm').format(dateTime);
     return formattedTime;
@@ -184,12 +210,22 @@ class _Home_PageState extends State<Home_Page> {
           ListView.builder(
             itemCount: _otherUserNames.length,
             itemBuilder: (context, index) {
+              String roomKey = '${_currentUser.uid}_${_otherUserIds[index]}';
+              String lastMessage = _latestMessages.containsKey(roomKey)
+                  ? _latestMessages[roomKey]
+                  : '';
+              int? lastTimestamp = _latestTimestamps.containsKey(roomKey)
+                  ? _latestTimestamps[roomKey]
+                  : 0;
+              String lastMessageTime = _formatTimestamp(lastTimestamp!);
               return ListTile(
                 leading: CircleAvatar(
                   backgroundImage:
                       NetworkImage(_otherUserProfilePictures[index]),
                 ),
                 title: Text(_otherUserNames[index]),
+                subtitle: Text(lastMessage),
+                trailing: Text(lastMessageTime),
               );
             },
           ),

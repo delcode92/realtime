@@ -95,17 +95,17 @@ class _CompleteProfileState extends State<CompleteProfile> {
     String nama = namaController.text.trim();
     String telepon = teleponController.text.trim();
 
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
-
-    Reference ref =
-        FirebaseStorage.instance.ref("profilepictures").child(fileName);
-    UploadTask uploadTask = ref.putFile(imageFile!);
-    TaskSnapshot snapshot = await uploadTask;
-    String imageUrl = await snapshot.ref.getDownloadURL();
-
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String uid = user.uid;
+
+      String fileName = '$uid.jpg';
+
+      Reference ref =
+          FirebaseStorage.instance.ref("profilePicture").child(fileName);
+      UploadTask uploadTask = ref.putFile(imageFile!);
+      TaskSnapshot snapshot = await uploadTask;
+      String imageUrl = await snapshot.ref.getDownloadURL();
 
       DatabaseReference usersRef =
           FirebaseDatabase.instance.reference().child('users');
