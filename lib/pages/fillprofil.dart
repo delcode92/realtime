@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -142,28 +141,49 @@ class _fillProfileState extends State<fillProfile> {
           child: ListView(
             children: [
               SizedBox(height: 20),
-              CupertinoButton(
-                onPressed: () {
-                  showPhotoOptions();
-                },
-                padding: EdgeInsets.all(0),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.grey,
-                  backgroundImage:
-                      (imageFile != null) ? FileImage(imageFile!) : null,
-                  child: Stack(
-                    alignment: Alignment.center,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Stack(
                     children: [
-                      if (imageFile == null)
-                        Icon(
-                          Icons.person,
-                          size: 100,
-                          color: Colors.white,
+                      CircleAvatar(
+                        radius: 80,
+                        backgroundColor: Colors.grey,
+                        backgroundImage:
+                            (imageFile != null) ? FileImage(imageFile!) : null,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (imageFile == null)
+                              Icon(
+                                Icons.person,
+                                size: 100,
+                                color: Colors.white,
+                              ),
+                          ],
                         ),
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            showPhotoOptions();
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.blue,
+                            ),
+                            child: Icon(Icons.camera_alt,
+                                color: Colors.white, size: 30),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
               SizedBox(height: 15),
               Text(
@@ -173,6 +193,7 @@ class _fillProfileState extends State<fillProfile> {
               TextField(
                 controller: namaController,
                 decoration: InputDecoration(
+                  hintText: 'Isi nama lengkap anda',
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 13, horizontal: 10),
                   border: OutlineInputBorder(),
@@ -187,6 +208,7 @@ class _fillProfileState extends State<fillProfile> {
                 controller: teleponController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
+                  hintText: '08xxxxxxxxxx',
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 13, horizontal: 10),
                   border: OutlineInputBorder(),
