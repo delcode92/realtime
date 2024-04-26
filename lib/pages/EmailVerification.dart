@@ -38,8 +38,56 @@ class _veritifikasiState extends State<veritifikasi> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text(
-          'veritifikasi ${user?.email}',
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Verifikasi Email',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Link verifikasi sudah dikirimkan ke email:',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+            Text(
+              '${user?.email}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Silakan cek email Anda dan klik link verifikasi\nuntuk melanjutkan. Jika email verifikasi tidak masuk, \nklik tombol "Kirim Ulang Email Verifikasi dibawah.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+              ),
+              onPressed: () {
+                user!.sendEmailVerification();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Email verifikasi telah dikirim ulang.'),
+                  ),
+                );
+              },
+              child: Text(
+                'Kirim Ulang Email Verifikasi',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         ),
       ),
     );
