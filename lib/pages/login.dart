@@ -94,11 +94,9 @@ class _LoginPageState extends State<LoginPage> {
                           _obscurePassword = !_obscurePassword;
                         });
                       },
-                      child: Icon(
-                        _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
+                      child: Icon(_obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
                     ),
                   ),
                   obscureText: _obscurePassword,

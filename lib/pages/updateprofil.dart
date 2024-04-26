@@ -154,11 +154,22 @@ class _uprofil_pageState extends State<uprofil_page> {
                         // ),
                         Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 80,
-                              backgroundImage:
-                                  NetworkImage(userData['profilePicture']),
-                            ),
+                            if (userData['profilePicture'] != null &&
+                                userData['profilePicture'] != "")
+                              CircleAvatar(
+                                radius: 80,
+                                backgroundColor: Colors.grey,
+                                backgroundImage:
+                                    NetworkImage(userData['profilePicture']),
+                              ),
+                            if (userData['profilePicture'] == null ||
+                                userData['profilePicture'] == "")
+                              CircleAvatar(
+                                radius: 80,
+                                backgroundColor: Colors.grey,
+                                child: Icon(Icons.person,
+                                    size: 100, color: Colors.white),
+                              ),
                             Positioned(
                               bottom: 10,
                               right: 0,

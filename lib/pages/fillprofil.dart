@@ -77,7 +77,7 @@ class _fillProfileState extends State<fillProfile> {
     String nama = namaController.text.trim();
     String telepon = teleponController.text.trim();
 
-    if (nama.isEmpty || telepon.isEmpty || imageFile == null) {
+    if (nama.isEmpty || telepon.isEmpty) {
       print("Please fill all the fields");
     } else {
       log("Uploading data..");
@@ -86,11 +86,6 @@ class _fillProfileState extends State<fillProfile> {
   }
 
   void uploadData() async {
-    if (imageFile == null) {
-      print("Please select a profile picture.");
-      return;
-    }
-
     String nama = namaController.text.trim();
     String telepon = teleponController.text.trim();
 
@@ -98,13 +93,16 @@ class _fillProfileState extends State<fillProfile> {
     if (user != null) {
       String uid = user.uid;
 
-      String fileName = '$uid.jpg';
+      String imageUrl = ''; // Default empty image URL
+      if (imageFile != null) {
+        String fileName = '$uid.jpg';
 
-      Reference ref =
-          FirebaseStorage.instance.ref("profilePicture").child(fileName);
-      UploadTask uploadTask = ref.putFile(imageFile!);
-      TaskSnapshot snapshot = await uploadTask;
-      String imageUrl = await snapshot.ref.getDownloadURL();
+        Reference ref =
+            FirebaseStorage.instance.ref("profilePicture").child(fileName);
+        UploadTask uploadTask = ref.putFile(imageFile!);
+        TaskSnapshot snapshot = await uploadTask;
+        imageUrl = await snapshot.ref.getDownloadURL();
+      }
 
       DatabaseReference usersRef =
           FirebaseDatabase.instance.reference().child('users');

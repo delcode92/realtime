@@ -144,7 +144,7 @@ class _signupState extends State<signup> {
                         ),
                       ),
                     ),
-                    obscureText: _obscureConfirmPassword,
+                    obscureText: _obscurePassword,
                   ),
                   SizedBox(
                     height: 15,
