@@ -1,78 +1,57 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:realtime/pages/fillprofil.dart';
 
-class EmailVerificationPage extends StatefulWidget {
-  const EmailVerificationPage({Key? key}) : super(key: key);
+class veritifikasi extends StatefulWidget {
+  const veritifikasi({super.key});
 
   @override
-  _EmailVerificationPageState createState() => _EmailVerificationPageState();
+  State<veritifikasi> createState() => _veritifikasiState();
 }
 
-class _EmailVerificationPageState extends State<EmailVerificationPage> {
-  bool _isVerified = false;
+class _veritifikasiState extends State<veritifikasi> {
+  final auth = FirebaseAuth.instance;
+  User? user;
+  Timer? timer;
 
   @override
   void initState() {
-    super.initState();
-    checkEmailVerification();
-  }
-
-  void checkEmailVerification() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await user.reload();
-      user = FirebaseAuth.instance.currentUser;
-      if (user != null && user.emailVerified) {
-        setState(() {
-          _isVerified = true;
-        });
-
-        print("Email has been successfully verified!");
-      } else {
-        setState(() {
-          _isVerified = false;
-        });
-        print("Email verification failed!");
+    user = auth.currentUser!;
+    user!.sendEmailVerification();
+    print('email terkirim $user.email');
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (mounted) {
+        chekemail();
       }
-    }
+    });
+    super.initState();
   }
 
   @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Email Verification'),
-      ),
       body: Center(
-        child: _isVerified
-            ? Text(
-                'Email has been verified!',
-                style: TextStyle(fontSize: 20),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Your email is not verified yet.',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      FirebaseAuth.instance.currentUser!
-                          .sendEmailVerification();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Verification email sent. Please check your inbox.'),
-                        ),
-                      );
-                    },
-                    child: Text('Resend Verification Email'),
-                  ),
-                ],
-              ),
+        child: Text(
+          'veritifikasi ${user?.email}',
+        ),
       ),
     );
+  }
+
+  Future<void> chekemail() async {
+    user = auth.currentUser!;
+    await user?.reload();
+    if (user!.emailVerified) {
+      timer?.cancel();
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => fillProfile()));
+    }
   }
 }

@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:realtime/pages/fillprofil.dart';
+import 'package:realtime/pages/EmailVerification.dart';
 
 class signup extends StatefulWidget {
   const signup({super.key});
@@ -63,6 +63,9 @@ class _signupState extends State<signup> {
       );
 
       if (credential != null) {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => veritifikasi()));
+
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           DatabaseReference usersRef =
@@ -71,11 +74,6 @@ class _signupState extends State<signup> {
             'email': email,
             'uid': user.uid,
           });
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => fillProfile()),
-          );
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -85,7 +83,7 @@ class _signupState extends State<signup> {
         print('The account already exists for that email.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('The account already exists for that email.'),
+            content: Text('email sudah terdaftar.'),
             backgroundColor: Colors.blue,
           ),
         );
