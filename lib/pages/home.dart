@@ -34,6 +34,7 @@ class _Home_PageState extends State<Home_Page> {
     _currentUser = FirebaseAuth.instance.currentUser!;
     _checkRooms();
     if (_currentUser != null) {
+      _checkRooms();
       _listenForNewRooms();
       _listenForRemovedRooms();
     }
@@ -91,33 +92,36 @@ class _Home_PageState extends State<Home_Page> {
             users.firstWhere((userId) => userId != currentUserUid);
         _getUserDetails(otherUserId);
 
-        _database
-            .child('rooms')
-            .child(roomKey)
-            .orderByKey()
-            .limitToLast(1)
-            .once()
-            .then((DatabaseEvent messageEvent) {
-          if (messageEvent.snapshot.value != null) {
-            Map<dynamic, dynamic>? messages =
-                messageEvent.snapshot.value as Map<dynamic, dynamic>?;
-            messages?.forEach((messageKey, messageData) {
-              setState(() {
-                // Check message type and format accordingly
-                if (messageData != null) {
-                  if (messageData['text'] != null) {
-                    _latestMessages[roomKey] = messageData['text'];
-                  } else if (messageData['fileUrl'] != null) {
-                    _latestMessages[roomKey] = Icons.file_copy_sharp;
-                  } else if (messageData['imageUrl'] != null) {
-                    _latestMessages[roomKey] = Icons.image;
-                  }
+        _updateLatestMessages(roomKey);
+      }
+    });
+  }
 
-                  _latestTimestamps[roomKey] = messageData['timestamp'] ?? 0;
-                }
-              });
-            });
-          }
+  void _updateLatestMessages(String roomKey) {
+    _database
+        .child('rooms')
+        .child(roomKey)
+        .orderByKey()
+        .limitToLast(1)
+        .once()
+        .then((DatabaseEvent messageEvent) {
+      if (messageEvent.snapshot.value != null) {
+        Map<dynamic, dynamic>? messages =
+            messageEvent.snapshot.value as Map<dynamic, dynamic>?;
+        messages?.forEach((messageKey, messageData) {
+          setState(() {
+            if (messageData != null) {
+              if (messageData['text'] != null) {
+                _latestMessages[roomKey] = messageData['text'];
+              } else if (messageData['fileUrl'] != null) {
+                _latestMessages[roomKey] = Icons.file_copy_sharp;
+              } else if (messageData['imageUrl'] != null) {
+                _latestMessages[roomKey] = Icons.image;
+              }
+
+              _latestTimestamps[roomKey] = messageData['timestamp'] ?? 0;
+            }
+          });
         });
       }
     });
@@ -246,8 +250,16 @@ class _Home_PageState extends State<Home_Page> {
                 },
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundImage:
-                        NetworkImage(_otherUserProfilePictures[index]),
+                    backgroundColor: Colors.grey,
+                    backgroundImage: _otherUserProfilePictures[index] != ""
+                        ? NetworkImage(_otherUserProfilePictures[index])
+                        : null,
+                    child: _otherUserProfilePictures[index] == ""
+                        ? Icon(
+                            Icons.person,
+                            color: Colors.white,
+                          )
+                        : null,
                   ),
                   title: Text(_otherUserNames[index]),
                   subtitle: _latestMessages.containsKey(roomKey) &&

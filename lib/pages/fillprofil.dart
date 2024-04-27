@@ -93,7 +93,7 @@ class _fillProfileState extends State<fillProfile> {
     if (user != null) {
       String uid = user.uid;
 
-      String imageUrl = ''; // Default empty image URL
+      String imageUrl = '';
       if (imageFile != null) {
         String fileName = '$uid.jpg';
 

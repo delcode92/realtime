@@ -82,9 +82,24 @@ class _SearchPageState extends State<SearchPage> {
                                       },
                                       child: ListTile(
                                         leading: CircleAvatar(
-                                          backgroundImage: NetworkImage(
-                                              value['profilePicture'] ?? ''),
+                                          backgroundColor: Colors.grey,
+                                          backgroundImage:
+                                              value['profilePicture'] != null &&
+                                                      value['profilePicture'] !=
+                                                          ""
+                                                  ? NetworkImage(
+                                                      value['profilePicture'])
+                                                  : null,
+                                          child: value['profilePicture'] ==
+                                                      null ||
+                                                  value['profilePicture'] == ""
+                                              ? Icon(
+                                                  Icons.person,
+                                                  color: Colors.white,
+                                                )
+                                              : null,
                                         ),
+
                                         title: Text(value['nama']),
                                         // title: Text(value['hp']),
                                         subtitle: Text(value['email']),

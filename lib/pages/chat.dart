@@ -74,9 +74,15 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Row(
           children: [
             CircleAvatar(
-              radius: 18,
-              backgroundImage: widget.profilePicture != null
+              backgroundColor: Colors.grey,
+              backgroundImage: widget.profilePicture != ""
                   ? NetworkImage(widget.profilePicture!)
+                  : null,
+              child: widget.profilePicture == ""
+                  ? Icon(
+                      Icons.person,
+                      color: Colors.white,
+                    )
                   : null,
             ),
             SizedBox(
@@ -184,28 +190,78 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ),
                                       ),
                                       if (!isSentByCurrentUser)
-                                        Positioned(
-                                          top: 5,
-                                          right: 5,
-                                          child: GestureDetector(
-                                            onTap: () {},
-                                            child: Container(
-                                              width: 35,
-                                              height: 35,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.transparent,
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 2,
+                                        GestureDetector(
+                                          onTap: () async {
+                                            if (!(await _isimageDownloaded(
+                                                message['imageName']))) {
+                                              setState(() {
+                                                message['downloading'] = true;
+                                              });
+                                              _downloadimage(
+                                                      message['imageUrl'],
+                                                      message['imageName'])
+                                                  .then((_) {
+                                                setState(() {
+                                                  message['downloading'] =
+                                                      false;
+                                                });
+                                              });
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      'Gambar sudah diunduh.'),
                                                 ),
+                                              );
+                                            }
+                                          },
+                                          child: Container(
+                                            width: 35,
+                                            height: 35,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.transparent,
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 2,
                                               ),
-                                              child: Center(
-                                                child: Icon(
-                                                  Icons.download,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                                            ),
+                                            child: Center(
+                                              child: message['downloading'] ==
+                                                      true
+                                                  ? CircularProgressIndicator()
+                                                  : FutureBuilder<bool>(
+                                                      future:
+                                                          _isimageDownloaded(
+                                                              message[
+                                                                  'imageName']),
+                                                      builder:
+                                                          (context, snapshot) {
+                                                        if (snapshot
+                                                                .connectionState ==
+                                                            ConnectionState
+                                                                .waiting) {
+                                                          return CircularProgressIndicator();
+                                                        } else {
+                                                          if (snapshot
+                                                                  .hasData &&
+                                                              snapshot.data!) {
+                                                            return Icon(
+                                                              Icons.done,
+                                                              color:
+                                                                  Colors.white,
+                                                            );
+                                                          } else {
+                                                            return Icon(
+                                                              Icons.download,
+                                                              color:
+                                                                  Colors.white,
+                                                            );
+                                                          }
+                                                        }
+                                                      },
+                                                    ),
                                             ),
                                           ),
                                         ),
@@ -409,24 +465,50 @@ class _ChatScreenState extends State<ChatScreen> {
                           PopupMenuButton(
                             icon: Image.asset('assets/icons/clip.png'),
                             onSelected: (value) async {
+                              var status = await Permission.storage.request();
+                              if (!status.isGranted) {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text("Izin Penting"),
+                                      content: Text(
+                                          "Untuk melanjutkan, izin penyimpanan diperlukan."),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: Text("Tutup"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
+
                               if (value == 'image') {
                                 final imagePicker = ImagePicker();
                                 final pickedFile = await imagePicker.pickImage(
-                                    source: ImageSource.gallery);
+                                  source: ImageSource.gallery,
+                                );
+
                                 if (pickedFile != null) {
                                   final imageFile = File(pickedFile.path);
+                                  final fileName = pickedFile.name;
                                   final imageRef = FirebaseStorage.instance
                                       .ref()
                                       .child('images')
-                                      .child(
-                                          '${DateTime.now().millisecondsSinceEpoch}.jpg');
+                                      .child('$fileName');
                                   await imageRef.putFile(imageFile);
                                   final imageUrl =
                                       await imageRef.getDownloadURL();
-
-                                  _sendMessage('', imageUrl: imageUrl);
+                                  _sendMessage('',
+                                      imageUrl: imageUrl, imageName: fileName);
                                 }
                               }
+
                               if (value == 'file') {
                                 final result = await FilePicker.platform
                                     .pickFiles(allowMultiple: false);
@@ -519,7 +601,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendMessage(String text,
-      {String? imageUrl, String? fileUrl, String? fileName, int? fileSize}) {
+      {String? imageUrl,
+      String? imageName,
+      String? fileUrl,
+      String? fileName,
+      int? fileSize}) {
     if (text.isNotEmpty || imageUrl != null || fileUrl != null) {
       Map<String, dynamic> messageData = {
         'sender': FirebaseAuth.instance.currentUser!.uid,
@@ -532,6 +618,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (imageUrl != null) {
         messageData['imageUrl'] = imageUrl;
+        messageData['imageName'] = imageName;
       }
 
       if (fileUrl != null) {
@@ -563,6 +650,26 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _downloadFile(String fileUrl, String fileName) async {
     try {
       var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Izin Penting"),
+              content: Text("Untuk melanjutkan, izin penyimpanan diperlukan."),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("Tutup"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
       if (status.isGranted) {
         final externalDir = await getExternalStorageDirectory();
         final savedDir = Directory('${externalDir!.path}/DisApp/Documents');
@@ -577,21 +684,77 @@ class _ChatScreenState extends State<ChatScreen> {
           showNotification: true,
           openFileFromNotification: true,
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Izin penyimpanan ditolak.'),
-          ),
-        );
       }
     } catch (e) {
       print('Error downloading file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengunduh file.'),
+          duration: Duration(seconds: 1),
+        ),
+      );
     }
   }
 
   Future<bool> _isFileDownloaded(String fileName) async {
     final externalDir = await getExternalStorageDirectory();
+
     final file = File('${externalDir!.path}/DisApp/Documents/$fileName');
+    return await file.exists();
+  }
+
+  Future<void> _downloadimage(String imageUrl, String fileName) async {
+    try {
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Izin Penting"),
+              content: Text("Untuk melanjutkan, izin penyimpanan diperlukan."),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("Tutup"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+      if (status.isGranted) {
+        final externalDir = await getExternalStorageDirectory();
+        final savedDir = Directory('${externalDir!.path}/DisApp/Images');
+        bool hasExisted = await savedDir.exists();
+        if (!hasExisted) {
+          await savedDir.create(recursive: true);
+        }
+        await FlutterDownloader.enqueue(
+          url: imageUrl,
+          savedDir: savedDir.path,
+          fileName: fileName,
+          showNotification: true,
+          openFileFromNotification: true,
+        );
+      }
+    } catch (e) {
+      print('Error downloading file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengunduh image.'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  Future<bool> _isimageDownloaded(String imageName) async {
+    final externalDir = await getExternalStorageDirectory();
+    final file = File('${externalDir!.path}/DisApp/Images/$imageName');
     return await file.exists();
   }
 }

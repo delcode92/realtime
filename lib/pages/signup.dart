@@ -56,6 +56,7 @@ class _signupState extends State<signup> {
 
   void signup(String email, String password) async {
     try {
+      String imageUrl = '';
       final credential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -73,6 +74,7 @@ class _signupState extends State<signup> {
           usersRef.child(user.uid).set({
             'email': email,
             'uid': user.uid,
+            'profilePicture': imageUrl,
           });
         }
       }
