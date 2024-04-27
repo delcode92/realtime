@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:realtime/pages/chat.dart';
 import 'package:realtime/pages/login.dart';
 import 'package:realtime/pages/search.dart';
 import 'package:realtime/pages/updateprofil.dart';
@@ -90,7 +91,6 @@ class _Home_PageState extends State<Home_Page> {
             users.firstWhere((userId) => userId != currentUserUid);
         _getUserDetails(otherUserId);
 
-        // Update latest message and timestamp
         _database
             .child('rooms')
             .child(roomKey)
@@ -103,8 +103,18 @@ class _Home_PageState extends State<Home_Page> {
                 messageEvent.snapshot.value as Map<dynamic, dynamic>?;
             messages?.forEach((messageKey, messageData) {
               setState(() {
-                _latestMessages[roomKey] = messageData['text'];
-                _latestTimestamps[roomKey] = messageData['timestamp'];
+                // Check message type and format accordingly
+                if (messageData != null) {
+                  if (messageData['text'] != null) {
+                    _latestMessages[roomKey] = messageData['text'];
+                  } else if (messageData['fileUrl'] != null) {
+                    _latestMessages[roomKey] = Icons.file_copy_sharp;
+                  } else if (messageData['imageUrl'] != null) {
+                    _latestMessages[roomKey] = Icons.image;
+                  }
+
+                  _latestTimestamps[roomKey] = messageData['timestamp'] ?? 0;
+                }
               });
             });
           }
@@ -211,21 +221,50 @@ class _Home_PageState extends State<Home_Page> {
             itemCount: _otherUserNames.length,
             itemBuilder: (context, index) {
               String roomKey = '${_currentUser.uid}_${_otherUserIds[index]}';
-              String lastMessage = _latestMessages.containsKey(roomKey)
+              String lastMessage = _latestMessages.containsKey(roomKey) &&
+                      _latestMessages[roomKey] is String
                   ? _latestMessages[roomKey]
                   : '';
+
               int? lastTimestamp = _latestTimestamps.containsKey(roomKey)
                   ? _latestTimestamps[roomKey]
                   : 0;
               String lastMessageTime = _formatTimestamp(lastTimestamp!);
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage:
-                      NetworkImage(_otherUserProfilePictures[index]),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return ChatScreen(
+                        roomId: generateRoomId(
+                            _currentUser.uid, _otherUserIds[index]),
+                        nama: _otherUserNames[index],
+                        profilePicture: _otherUserProfilePictures[index],
+                      );
+                    }),
+                  );
+                },
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage:
+                        NetworkImage(_otherUserProfilePictures[index]),
+                  ),
+                  title: Text(_otherUserNames[index]),
+                  subtitle: _latestMessages.containsKey(roomKey) &&
+                          _latestMessages[roomKey] != null
+                      ? Row(
+                          children: [
+                            _latestMessages[roomKey] is IconData
+                                ? Icon(
+                                    _latestMessages[roomKey] as IconData,
+                                    size: 15,
+                                  )
+                                : Text(_latestMessages[roomKey] as String),
+                          ],
+                        )
+                      : Text('tidak ada pesan'),
+                  trailing: Text(lastMessageTime),
                 ),
-                title: Text(_otherUserNames[index]),
-                subtitle: Text(lastMessage),
-                trailing: Text(lastMessageTime),
               );
             },
           ),
@@ -252,5 +291,12 @@ class _Home_PageState extends State<Home_Page> {
         ],
       ),
     );
+  }
+
+  String generateRoomId(String userId1, String userId2) {
+    List<String> participants = [userId1, userId2];
+    participants.sort();
+    String roomId = participants.join('_');
+    return roomId;
   }
 }

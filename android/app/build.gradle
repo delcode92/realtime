@@ -47,7 +47,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 33
+        targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled = true
@@ -74,8 +74,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-appcheck-safetynet:16.0.0'
     implementation 'com.google.firebase:firebase-appcheck:17.0.0'
 
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation("androidx.multidex:multidex:2.0.1")
-    implementation ("androidx.activity:activity:1.6.0-alpha05")
+    // implementation("com.google.firebase:firebase-auth")
+    // implementation("com.google.android.gms:play-services-auth:20.7.0")
+    // implementation("androidx.multidex:multidex:2.0.1")
+    // implementation ("androidx.activity:activity:1.6.0-alpha05")
 }
