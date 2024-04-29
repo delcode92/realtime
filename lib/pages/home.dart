@@ -103,6 +103,12 @@ class _Home_PageState extends State<Home_Page> {
       Map<dynamic, dynamic> messageData =
           event.snapshot.value as Map<dynamic, dynamic>;
 
+      
+      print("======== cek data ===========");
+      print(messageData['text']);
+      print("=============================");
+
+      
       setState(() {
         if (messageData != null) {
           if (messageData['text'] != null) {
