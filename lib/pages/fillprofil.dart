@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:realtime/pages/home.dart';
 
 class fillProfile extends StatefulWidget {
@@ -22,6 +23,27 @@ class _fillProfileState extends State<fillProfile> {
   TextEditingController teleponController = TextEditingController();
 
   void selectImage(ImageSource source) async {
+    var status = await Permission.storage.request();
+    if (!status.isGranted) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Izin Penting"),
+            content: Text("Untuk melanjutkan, izin penyimpanan diperlukan."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Tutup"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
     XFile? pickedFile = await ImagePicker().pickImage(source: source);
 
     if (pickedFile != null) {
@@ -63,7 +85,7 @@ class _fillProfileState extends State<fillProfile> {
                   Navigator.pop(context);
                   selectImage(ImageSource.gallery);
                 },
-                leading: Icon(Icons.photo_album),
+                leading: Icon(Icons.image),
                 title: Text("Select from Gallery"),
               ),
             ],

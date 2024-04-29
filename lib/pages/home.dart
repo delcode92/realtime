@@ -98,32 +98,24 @@ class _Home_PageState extends State<Home_Page> {
   }
 
   void _updateLatestMessages(String roomKey) {
-    _database
-        .child('rooms')
-        .child(roomKey)
-        .orderByKey()
-        .limitToLast(1)
-        .once()
-        .then((DatabaseEvent messageEvent) {
-      if (messageEvent.snapshot.value != null) {
-        Map<dynamic, dynamic>? messages =
-            messageEvent.snapshot.value as Map<dynamic, dynamic>?;
-        messages?.forEach((messageKey, messageData) {
-          setState(() {
-            if (messageData != null) {
-              if (messageData['text'] != null) {
-                _latestMessages[roomKey] = messageData['text'];
-              } else if (messageData['fileUrl'] != null) {
-                _latestMessages[roomKey] = Icons.file_copy_sharp;
-              } else if (messageData['imageUrl'] != null) {
-                _latestMessages[roomKey] = Icons.image;
-              }
+    _database.child('rooms').child(roomKey).onChildAdded.listen((event) {
+      String messageKey = event.snapshot.key!;
+      Map<dynamic, dynamic> messageData =
+          event.snapshot.value as Map<dynamic, dynamic>;
 
-              _latestTimestamps[roomKey] = messageData['timestamp'] ?? 0;
-            }
-          });
-        });
-      }
+      setState(() {
+        if (messageData != null) {
+          if (messageData['text'] != null) {
+            _latestMessages[roomKey] = messageData['text'];
+          } else if (messageData['fileUrl'] != null) {
+            _latestMessages[roomKey] = Icons.file_copy_sharp;
+          } else if (messageData['imageUrl'] != null) {
+            _latestMessages[roomKey] = Icons.image;
+          }
+
+          _latestTimestamps[roomKey] = messageData['timestamp'] ?? 0;
+        }
+      });
     });
   }
 
