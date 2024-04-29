@@ -23,7 +23,8 @@ class _Home_PageState extends State<Home_Page> {
   Map<String, dynamic> _latestMessages = {};
   Map<String, int> _latestTimestamps = {};
   List<String> _otherUserIds = [];
-
+  //Text nm_custom_widget;
+  
   @override
   void initState() {
     super.initState();
@@ -104,9 +105,19 @@ class _Home_PageState extends State<Home_Page> {
           event.snapshot.value as Map<dynamic, dynamic>;
 
       setState(() {
+
+        // update isi custom widget dengan , latest Message
+        
         if (messageData != null) {
           if (messageData['text'] != null) {
+
+            //
+            
+            // tampilText.text( messageData['text'] )
+            
             _latestMessages[roomKey] = messageData['text'];
+          
+          
           } else if (messageData['fileUrl'] != null) {
             _latestMessages[roomKey] = Icons.file_copy_sharp;
           } else if (messageData['imageUrl'] != null) {
@@ -264,6 +275,10 @@ class _Home_PageState extends State<Home_Page> {
                                     size: 15,
                                   )
                                 : Text(_latestMessages[roomKey] as String),
+                                
+                               // UPDATE WIDGET TEXT DALAM ROW ---> [widget1, widget2 , ... ]
+                                // - buat custom widget yg sifatnya Global (bisa diakses oleh semua method di class home)
+                                // custom widget taruh didalam children[...]
                           ],
                         )
                       : Text('tidak ada pesan'),
